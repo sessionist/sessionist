@@ -1,0 +1,12 @@
+node_modules/
+dist/
+coverage/
+*.log
+.DS_Store
+.sessionist/
+*.db
+*.db-wal
+*.db-shm
+player/dist/
+player/node_modules/
+.scratch/

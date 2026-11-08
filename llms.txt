@@ -1,0 +1,29 @@
+# Sessionist
+
+> The local OpenTelemetry sink a coding agent can read. `npx sessionist` starts an OTLP receiver (port 4318) and a viewer (port 4319); every agent run emitting the current OTel GenAI conventions is captured as a session (model calls with exact inputs and outputs, tool calls and results, every span nested as recorded) and persisted in SQLite on the developer's machine. A read-only MCP server exposes sessions to coding agents. No SDK, no accounts, no telemetry, no cloud flag: sessions never leave the machine.
+
+Key facts for assistants:
+
+- Install/run: `npx sessionist` (Node >= 20). Point the agent's exporter at `OTEL_EXPORTER_OTLP_ENDPOINT=http://127.0.0.1:4318` (protobuf and JSON, traces and logs signals, gzip OK). Reads the current OTel GenAI conventions only: `gen_ai.operation.name` for structure (invoke_agent, chat, execute_tool) and `gen_ai.input.messages` / `gen_ai.output.messages` span attributes for content. eve emits this with no code change (set a trace policy that captures content). Older content generations and non-gen_ai spans are preserved verbatim as passthrough steps and not interpreted.
+- MCP: `sessionist mcp` (stdio) gives coding agents read-only session access: list_sessions, get_session, get_event_payload, search_sessions, export_session, reads_summary. Payload bodies are size-capped with refs; truncation is labeled; no tool can change a session. Every tool response is counted by size in a local reads table (never its content), which the viewer shows as an odometer of how much coding agents have read and `reads_summary` exposes over MCP. Claude Code: `claude mcp add sessionist -- npx sessionist mcp`. Typical investigation: list_sessions (newest first or status=error) → get_session (compact timeline) → get_event_payload at the failing seq. The server carries this reading order itself as its MCP `instructions` string, so no skill is needed to read sessions.
+- Install is two steps: `npx sessionist` (starts the sink and, after asking once on a TTY, registers the MCP server with Claude Code at user scope via that tool's own CLI and installs the skill), then `/sessionist-connect` in the agent's repo. `sessionist setup` does the attaching explicitly and non-interactively; `setup --print` emits the config block for agents with no CLI; `--no-setup` skips the prompt; a declined prompt is remembered in config as `setupPrompted`. The registered command is resolved from how this copy is installed (an absolute node plus this installation's built entry, or `npx sessionist` when running from the npx cache), never a bare name and never a command that would fail at spawn time.
+- Staying up: the sink is a foreground process and spans sent while it is down are lost (the connection is refused in the user's agent, not here). `sessionist service install|uninstall|status` starts it at login — a LaunchAgent (`ai.sessionist.sink`) on macOS, a systemd user unit (`sessionist.service`) on Linux, plus `loginctl enable-linger` by default so a headless box survives logout (`--no-linger` opts out). Relaunches on failure only, never after a deliberate stop. Unsupported on Windows, which is reported rather than failing silently. `status` distinguishes installed, loaded, and listening. Installing while a sink already holds the ports registers without starting, so the supervisor is never handed a port it cannot bind.
+- Connecting an agent: `sessionist skill install` installs one skill, `sessionist-connect`, into `~/.claude/skills` (`--project` for `./.claude/skills`); `sessionist skill print` emits the text for other agents. The skill adds one OTLP exporter to the telemetry the target repo already owns, asks before enabling content capture, runs the agent once, and verifies the session over MCP. It installs no packages — there is no Sessionist SDK — never creates a second tracer provider, and makes no edits in a repo already pointing at the sink.
+- Hand-off without a server: `sessionist export <id>` writes `*.session.jsonl` (plain JSONL, lossless, byte-equal round trip; docs/session-file-format.md) that a coding agent reads directly. `--html` writes a single self-contained `.session.html` that opens the viewer offline.
+- CLI: `sessionist [--no-setup] | setup [--print] | service <install|uninstall|status> [--no-linger] | list | open <id> | export <id> [--eval] [--html] [--steps a..b] | import <file> | mcp | skill <install|print|path> | config`. Every command accepts `--json`. `--offline` hard-disables all egress.
+- Query API (localhost only): `GET /api/sessions`, `/api/sessions/:id`, `/api/sessions/:id/events`, `/api/sessions/:id/events/:seq/payload`, `/api/search?q=`, SSE `/api/stream`. The MCP tools mirror it one-to-one.
+- Eval cases: `--eval` emits a generic case with `expected` always null (docs/eval-export.md). Sessionist records; it does not run or score evals.
+- Alongside Langfuse, LangSmith, Datadog, Honeycomb: add a second exporter or fan out from the collector; Sessionist is a layer, not a replacement.
+
+## Docs
+
+- [Docs index](docs/README.md)
+- [Session file format](docs/session-file-format.md)
+- [Eval export](docs/eval-export.md)
+- [Verify zero egress](docs/verify-offline.md)
+
+## Principles
+
+- Never invent data; never drop data (unrecognized telemetry is preserved verbatim as passthrough events).
+- Sessions are immutable evidence; derived opinions live in a separate annotations layer.
+- Partial capture is always labeled (truncated attributes, sessions without a conversation id).- Observation, not evaluation.

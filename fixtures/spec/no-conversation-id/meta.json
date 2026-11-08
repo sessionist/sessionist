@@ -1,0 +1,18 @@
+{
+  "scenario": "no-conversation-id",
+  "description": "Two complete runs with no gen_ai.conversation.id and no session.id. Grouping falls to the same-service time window; in one replay window they land in one session, which is the rule working as written.",
+  "generatedBy": "tools/spec-emitter/emit.ts",
+  "spec": {
+    "repository": "open-telemetry/semantic-conventions-genai",
+    "commit": "41aad2b16ab1725eb618c5e9a0b82433e9b1c170"
+  },
+  "encoding": "protobuf",
+  "sdk": {
+    "@opentelemetry/api": "1.10.0",
+    "@opentelemetry/sdk-trace": "3.0.0",
+    "@opentelemetry/sdk-logs": "3.0.0",
+    "exporters": "0.300.0"
+  },
+  "batches": 1,
+  "notes": "The assembler's idle gap is wall-clock, so two runs in one batch share a session. The gap-closing rule itself is covered by tests/assembler.test.ts with synthetic events."
+}

@@ -1,0 +1,10 @@
+{
+  "path": "/v1/traces",
+  "headers": {
+    "content-type": "application/json",
+    "user-agent": "OTel-OTLP-Exporter-JavaScript/0.300.0",
+    "host": "127.0.0.1:43181",
+    "connection": "keep-alive",
+    "transfer-encoding": "chunked"
+  }
+}

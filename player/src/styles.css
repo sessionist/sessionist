@@ -1,0 +1,552 @@
+/* SPDX-License-Identifier: MIT */
+/* Copyright (c) 2026 Sessionist */
+
+/* Brand tokens. The mark is monochrome. Green means one thing: a session that is
+   live right now. Selection and focus are faint paper, never a colour. Red is
+   reserved for evidence of failure — errors, warnings, dropped context — and
+   nothing else. Letters stay neutral. */
+:root {
+  --ink: #101014;
+  --paper: #f5f4ef;
+  --accent: #2e9e6b;
+  --red: #e24b4a;
+  --muted: #8a8a93;
+  /* shades of ink for surfaces — not new hues */
+  --panel: #17171c;
+  --raise: #1e1e24;
+  --line: #26262c;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --sans: -apple-system, system-ui, "Segoe UI", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--sans);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* Evidence is monospaced, everywhere: timestamps, ids, token counts, seq. */
+.mono {
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 1px solid rgba(245, 244, 239, 0.55);
+  outline-offset: -1px;
+}
+
+/* ---------- app frame ---------- */
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--line);
+  flex: none;
+}
+
+.wordmark {
+  font-family: var(--mono);
+  font-size: 14px;
+  letter-spacing: 0.18em;
+  color: var(--paper);
+}
+
+.odometer {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.topbar .spacer {
+  flex: 1;
+}
+
+.search {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  color: var(--paper);
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 5px 9px;
+  width: 260px;
+}
+
+.search::placeholder {
+  color: var(--muted);
+}
+
+.main {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+/* ---------- session list rail ---------- */
+.rail {
+  width: 300px;
+  flex: none;
+  border-right: 1px solid var(--line);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.rail-filters {
+  display: flex;
+  gap: 6px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.chip {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 2px 8px;
+}
+
+.chip.on {
+  color: var(--paper);
+  border-color: var(--muted);
+}
+
+.session-row {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.session-row:hover {
+  background: var(--raise);
+}
+
+.session-row.selected {
+  background: var(--raise);
+  box-shadow: inset 0 0 0 1px rgba(245, 244, 239, 0.28);
+}
+
+.session-row .svc {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-weight: 600;
+}
+
+.session-row .when {
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.session-row .counts {
+  color: var(--muted);
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex: none;
+}
+
+.status-ok {
+  background: var(--muted);
+}
+
+.status-error {
+  background: var(--red);
+}
+
+.status-running {
+  background: var(--accent);
+  animation: pulse 1.6s ease-in-out infinite;
+}
+
+.empty {
+  color: var(--muted);
+  padding: 24px 16px;
+}
+
+.empty code {
+  font-family: var(--mono);
+  color: var(--paper);
+}
+
+/* ---------- session view ---------- */
+.session-view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.session-head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 10px 16px 0;
+}
+
+.session-head .id {
+  color: var(--muted);
+}
+
+.badge {
+  font-family: var(--mono);
+  font-size: 11px;
+  border: 1px solid var(--muted);
+  border-radius: 3px;
+  color: var(--paper);
+  background: var(--panel);
+  padding: 1px 7px;
+}
+
+.badge.warn {
+  border-color: var(--red);
+}
+
+/* ---------- timeline scrubber: the tape strip ---------- */
+.tape {
+  position: relative;
+  margin: 10px 16px;
+  padding: 14px 0 6px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: var(--panel);
+  cursor: pointer;
+  user-select: none;
+}
+
+.tape-ticks {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 42px;
+  padding: 0 10px;
+}
+
+.tick {
+  flex: 1;
+  min-width: 2px;
+  max-width: 14px;
+  background: var(--muted);
+  opacity: 0.5;
+  border-radius: 1px 1px 0 0;
+}
+
+.tick.err {
+  background: var(--red);
+  opacity: 1;
+}
+
+.tick.sel {
+  opacity: 1;
+  background: var(--paper);
+}
+
+.tick.sel.err {
+  background: var(--red);
+}
+
+.tape-meta {
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted);
+  padding: 4px 10px 2px;
+}
+
+/* ---------- step list + inspector ---------- */
+.split {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  border-top: 1px solid var(--line);
+}
+
+.steps {
+  width: 340px;
+  flex: none;
+  overflow-y: auto;
+  border-right: 1px solid var(--line);
+}
+
+.step-row {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--line);
+  align-items: baseline;
+}
+
+.step-row:hover {
+  background: var(--raise);
+}
+
+.step-row.selected {
+  background: var(--raise);
+  box-shadow: inset 0 0 0 1px rgba(245, 244, 239, 0.28);
+}
+
+.step-row .seq {
+  color: var(--muted);
+  width: 34px;
+  flex: none;
+  text-align: right;
+}
+
+.step-row .etype {
+  color: var(--muted);
+  width: 86px;
+  flex: none;
+}
+
+.step-row .ename {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.step-row.err .etype,
+.step-row.err .seq {
+  color: var(--red);
+}
+
+.inspector {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 18px;
+  min-width: 0;
+}
+
+.inspector h3 {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 18px 0 6px;
+}
+
+.inspector h3:first-child {
+  margin-top: 0;
+}
+
+.kv {
+  display: grid;
+  grid-template-columns: minmax(140px, max-content) 1fr;
+  gap: 2px 16px;
+}
+
+.kv .k {
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.kv .v {
+  overflow-wrap: anywhere;
+}
+
+.payload {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 10px 12px;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.msg {
+  border-left: 2px solid var(--line);
+  padding: 6px 10px;
+  margin: 6px 0;
+}
+
+.msg .role {
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 11px;
+}
+
+.msg.assistant {
+  border-left-color: var(--muted);
+}
+
+.msg.user,
+.msg.system {
+  border-left-color: var(--line);
+}
+
+.msg.tool {
+  border-left-color: var(--line);
+}
+
+.loading,
+.none {
+  color: var(--muted);
+}
+
+/* context diff: added = present tense, dropped = red (evidence of loss) */
+.diff-entry {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.diff-entry .diff-tag {
+  flex: none;
+  width: 72px;
+  padding-top: 8px;
+  color: var(--muted);
+  white-space: pre;
+}
+
+.diff-entry.added .diff-tag {
+  color: var(--paper);
+}
+
+.diff-entry.removed .diff-tag {
+  color: var(--red);
+}
+
+.diff-entry.removed .msg {
+  border-left-color: var(--red);
+  opacity: 0.75;
+}
+
+.diff-entry.added .msg {
+  border-left-color: var(--paper);
+}
+
+.diff-entry.same .msg {
+  opacity: 0.55;
+}
+
+.diff-entry .msg {
+  flex: 1;
+  min-width: 0;
+}
+
+.diff-entry .diff-text {
+  flex: 1;
+  min-width: 0;
+  margin: 6px 0;
+  border-left-width: 2px;
+}
+
+.diff-entry.removed .diff-text {
+  border-left-color: var(--red);
+  opacity: 0.75;
+}
+
+.diff-entry.added .diff-text {
+  border-left-color: var(--paper);
+}
+
+.diff-entry.same .diff-text {
+  opacity: 0.55;
+}
+
+.load-btn {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--paper);
+  border: 1px solid var(--muted);
+  border-radius: 3px;
+  padding: 4px 10px;
+}
+
+.load-btn:hover {
+  border-color: var(--paper);
+}
+
+/* ---------- mark motion: live = the field breathes, playing = ink lights along the S.
+   The mark is never rotated. Per-circle delays are set inline by the component. */
+@keyframes mark-breathe {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.mark-live .mark-field circle {
+  animation: mark-breathe 2.4s ease-in-out infinite;
+}
+
+@keyframes mark-trace {
+  0%,
+  70%,
+  100% {
+    opacity: 0.3;
+  }
+  15% {
+    opacity: 1;
+  }
+}
+
+.mark-playing .mark-ink circle {
+  animation: mark-trace 1.8s infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mark-live .mark-field circle,
+  .mark-playing .mark-ink circle,
+  .status-running {
+    animation: none;
+  }
+}

@@ -1,0 +1,5 @@
+{
+  "derivedFrom": "spec/agent-tool-loop/batches/0001.traces.pb",
+  "mutation": "truncated to 60% of original byte length (1763 of 2939 bytes)",
+  "purpose": "receiver must respond 400 and keep serving"
+}

@@ -1,0 +1,75 @@
+{
+  "name": "sessionist",
+  "version": "0.1.0",
+  "description": "A flight recorder for your agent. Records every run on your machine; your coding agent reads it over MCP. No SDK, no account, nothing leaves your machine.",
+  "keywords": [
+    "opentelemetry",
+    "otlp",
+    "mcp",
+    "agents",
+    "ai-agents",
+    "observability",
+    "tracing",
+    "claude-code",
+    "local-first",
+    "sqlite"
+  ],
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sessionist/sessionist.git"
+  },
+  "homepage": "https://github.com/sessionist/sessionist#readme",
+  "bugs": "https://github.com/sessionist/sessionist/issues",
+  "bin": {
+    "sessionist": "./dist/cli.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "files": [
+    "dist",
+    "!dist/**/*.map",
+    "README.md",
+    "LICENSE",
+    "TRADEMARK.md",
+    "llms.txt"
+  ],
+  "scripts": {
+    "build": "tsup && npm --prefix player run build && rm -rf dist/player && cp -R player/dist dist/player && rm -rf dist/skills && cp -R skills dist/skills",
+    "build:server": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "node scripts/check-headers.mjs && tsup --no-clean && vitest run",
+    "test:watch": "vitest",
+    "check-headers": "node scripts/check-headers.mjs",
+    "fixtures": "tsx tools/spec-emitter/emit.ts && tsx tools/spec-emitter/derive-malformed.ts",
+    "dev": "tsx src/cli/index.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "better-sqlite3": "^12.2.0",
+    "protobufjs": "^7.4.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@opentelemetry/api": "1.10.0",
+    "@opentelemetry/exporter-logs-otlp-http": "0.300.0",
+    "@opentelemetry/exporter-logs-otlp-proto": "0.300.0",
+    "@opentelemetry/exporter-trace-otlp-http": "0.300.0",
+    "@opentelemetry/exporter-trace-otlp-proto": "0.300.0",
+    "@opentelemetry/resources": "3.0.0",
+    "@opentelemetry/sdk-logs": "3.0.0",
+    "@opentelemetry/sdk-trace": "3.0.0",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/js-yaml": "4.0.9",
+    "@types/node": "^22.15.0",
+    "ajv": "8.20.0",
+    "js-yaml": "4.1.0",
+    "protobufjs-cli": "^1.1.3",
+    "tsup": "^8.4.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.0",
+    "vitest": "^3.1.0"
+  }
+}
