@@ -1,0 +1,18 @@
+{
+  "scenario": "large-payload",
+  "description": "A chat whose input message array is over the 32 KB blob threshold: the store's spillover path, byte-equal on the way back out.",
+  "generatedBy": "tools/spec-emitter/emit.ts",
+  "spec": {
+    "repository": "open-telemetry/semantic-conventions-genai",
+    "commit": "41aad2b16ab1725eb618c5e9a0b82433e9b1c170"
+  },
+  "encoding": "protobuf",
+  "sdk": {
+    "@opentelemetry/api": "1.10.0",
+    "@opentelemetry/sdk-trace": "3.0.0",
+    "@opentelemetry/sdk-logs": "3.0.0",
+    "exporters": "0.300.0"
+  },
+  "batches": 1,
+  "notes": ""
+}
