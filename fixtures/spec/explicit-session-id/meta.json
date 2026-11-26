@@ -1,0 +1,18 @@
+{
+  "scenario": "explicit-session-id",
+  "description": "session.id present on every span and gen_ai.conversation.id absent: the second grouping rule.",
+  "generatedBy": "tools/spec-emitter/emit.ts",
+  "spec": {
+    "repository": "open-telemetry/semantic-conventions-genai",
+    "commit": "41aad2b16ab1725eb618c5e9a0b82433e9b1c170"
+  },
+  "encoding": "protobuf",
+  "sdk": {
+    "@opentelemetry/api": "1.10.0",
+    "@opentelemetry/sdk-trace": "3.0.0",
+    "@opentelemetry/sdk-logs": "3.0.0",
+    "exporters": "0.300.0"
+  },
+  "batches": 1,
+  "notes": ""
+}
