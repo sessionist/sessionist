@@ -1,0 +1,18 @@
+{
+  "scenario": "skills",
+  "description": "The spec's execute_tool refinements for agent skills: load_skill and read_skill_resource spans with gen_ai.skill.name, rendered as tool calls with attributes preserved.",
+  "generatedBy": "tools/spec-emitter/emit.ts",
+  "spec": {
+    "repository": "open-telemetry/semantic-conventions-genai",
+    "commit": "41aad2b16ab1725eb618c5e9a0b82433e9b1c170"
+  },
+  "encoding": "protobuf",
+  "sdk": {
+    "@opentelemetry/api": "1.10.0",
+    "@opentelemetry/sdk-trace": "3.0.0",
+    "@opentelemetry/sdk-logs": "3.0.0",
+    "exporters": "0.300.0"
+  },
+  "batches": 1,
+  "notes": ""
+}
